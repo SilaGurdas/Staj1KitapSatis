@@ -1,0 +1,50 @@
+﻿@model List<BookStoreMVC.Models.SepetItem>
+
+<h2>Sepetim</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Sepetiniz boş.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Kitap</th>
+                <th>Adet</th>
+                <th>Birim Fiyat</th>
+                <th>Toplam Fiyat</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <img src="@item.ResimUrl" alt="@item.KitapAdi" style="width: 50px; height: auto;" />
+                        @item.KitapAdi
+                    </td>
+                    <td>@item.Adet</td>
+                    <td>@(item.Fiyat.ToString("C", new System.Globalization.CultureInfo("tr-TR")))</td>
+                    <td>@((item.Fiyat * item.Adet).ToString("C", new System.Globalization.CultureInfo("tr-TR")))</td>
+                    <td>
+                        <form asp-action="SepettenCikar" method="post">
+                            <input type="hidden" name="kitapId" value="@item.KitapId" />
+                            <button type="submit" class="btn btn-danger btn-sm">Çıkar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Toplam Tutar: @((Model.Sum(i => i.Fiyat * i.Adet)).ToString("C", new System.Globalization.CultureInfo("tr-TR")))</h4>
+
+    <form asp-controller="Siparis" asp-action="Tamamla" method="post">
+        <button type="submit" class="btn btn-outline-primary">Siparişi Tamamla</button>
+    </form>
+}

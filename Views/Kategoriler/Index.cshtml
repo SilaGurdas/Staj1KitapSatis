@@ -1,0 +1,20 @@
+﻿@model List<BookStoreMVC.Models.Kategori>
+
+<h2>Kategoriler</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<div class="row">
+    @foreach (var kategori in Model)
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card p-3 shadow">
+                <h5>@kategori.Ad</h5>
+                <a href="@Url.Action("Detay", "Kategoriler", new { id = kategori.Id })" class="btn btn-outline-primary">Detay</a>
+            </div>
+        </div>
+    }
+</div>

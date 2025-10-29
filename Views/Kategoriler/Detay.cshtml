@@ -1,0 +1,26 @@
+﻿@model BookStoreMVC.Models.Kategori
+
+<h2>@Model.Ad Kategorisi</h2>
+
+@if (Model.Kitaplar != null && Model.Kitaplar.Count > 0)
+{
+    <div class="row">
+        @foreach (var kitap in Model.Kitaplar)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card">
+                    <img src="@kitap.ResimUrl" class="card-img-top" />
+                    <div class="card-body">
+                        <h5 class="card-title">@kitap.Ad</h5>
+                        <p class="card-text">@kitap.Yazar</p>
+                        <a href="@Url.Action("Detay", "Kitaplar", new { id = kitap.Id })" class="btn btn-sm btn-primary">Detay</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Bu kategoriye ait kitap bulunmamaktadır.</p>
+}

@@ -1,0 +1,33 @@
+﻿@model List<BookStoreMVC.Models.SepetItem>
+
+@{
+    ViewBag.Title = "Siparişi Tamamla";
+}
+
+<h2 class="mt-4">Siparişi Tamamla</h2>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-warning">Sepetiniz boş.</div>
+}
+else
+{
+    <form asp-action="Tamamla" method="post">
+        <div class="mb-3">
+            <label for="kullaniciId" class="form-label">Kullanıcı ID</label>
+            <input type="number" name="kullaniciId" class="form-control" required />
+        </div>
+
+        <ul class="list-group mb-3">
+            @foreach (var item in Model)
+            {
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>@item.KitapAdi x @item.Adet</span>
+                    <strong>@(item.Fiyat* item.Adet) ₺</strong>
+                </li>
+            }
+        </ul>
+
+        <button type="submit" class="btn btn-success">Siparişi Tamamla</button>
+    </form>
+}

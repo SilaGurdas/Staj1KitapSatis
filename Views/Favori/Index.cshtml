@@ -1,0 +1,40 @@
+﻿@model List<BookStoreMVC.Models.FavoriItem>
+
+<h2>Favorilerim</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Favori listeniz boş.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Kitap</th>
+                <th>Fiyat</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <img src="@item.ResimUrl" alt="@item.KitapAdi" style="width: 50px; height: auto;" />
+                        @item.KitapAdi
+                    </td>
+                    <td>@(item.Fiyat.ToString("C", new System.Globalization.CultureInfo("tr-TR")))</td>
+                    <td>
+                        <form asp-action="FavoridenCikar" method="post">
+                            <input type="hidden" name="kitapId" value="@item.KitapId" />
+                            <button type="submit" class="btn btn-danger btn-sm">Kaldır</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,36 @@
+﻿@model List<BookStoreMVC.Models.Kitap>
+
+<h2>Kitaplar</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<div class="row">
+    @foreach (var kitap in Model)
+    {
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <img src="@kitap.ResimUrl" class="card-img-top" alt="@kitap.Ad" />
+                <div class="card-body">
+                    <h5 class="card-title">@kitap.Ad</h5>
+                    <p class="card-text">@kitap.Yazar</p>
+                    <p class="card-text">Fiyat: @kitap.Fiyat.ToString("C")</p>
+
+
+                    <a href="@Url.Action("Detay", "Kitaplar", new { id = kitap.Id })" class="btn btn-primary">Detay</a>
+
+                    <form asp-controller="Sepet" asp-action="SepeteEkle" method="post" style="display:inline-block; margin-left:5px;">
+                        <input type="hidden" name="kitapId" value="@kitap.Id" />
+                        <input type="hidden" name="kitapAdi" value="@kitap.Ad" />
+                        <input type="hidden" name="fiyat" value="@kitap.Fiyat" />
+                        <input type="hidden" name="resimUrl" value="@kitap.ResimUrl" />
+                        <button type="submit" class="btn btn-outline-success">🛒 Sepete Ekle</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
