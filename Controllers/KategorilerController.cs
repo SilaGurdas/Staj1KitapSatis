@@ -1,54 +1,94 @@
-﻿using BookStoreMVC.Models;
+﻿using BookStoreAPI.Data;
+using BookStoreAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace BookStoreMVC.Controllers
+namespace BookStoreAPI.Controllers
 {
-    public class KategorilerController : BaseController
+    [Route("api/[controller]")]
+    [ApiController]
+    public class KategorilerController : ControllerBase
     {
-        private readonly string apiUrl = "https://localhost:7062/api/Kategoriler";
+        private readonly UygulamaDbContext _context;
 
-        public async Task<IActionResult> Index()
+        public KategorilerController(UygulamaDbContext context)
         {
-            List<Kategori>? kategoriler = new();
-
-            using (var httpClient = new HttpClient())
-            {
-                var response = await httpClient.GetAsync(apiUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    kategoriler = await response.Content.ReadFromJsonAsync<List<Kategori>>();
-                }
-                else
-                {
-                    ViewBag.ErrorMessage = "Kategoriler alınamadı.";
-                }
-            }
-
-            return View(kategoriler);
+            _context = context;
         }
 
-
-        public async Task<IActionResult> Detay(int id)
+        
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Kategori>>> GetKategoriler()
         {
-            Kategori? kategori = null;
+            return await _context.Kategoriler.Include(k => k.Kitaplar).ToListAsync();
+        }
 
-            using (var httpClient = new HttpClient())
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Kategori>> GetKategori(int id)
+        {
+            var kategori = await _context.Kategoriler.Include(k => k.Kitaplar)
+                                                     .FirstOrDefaultAsync(k => k.Id == id);
+
+            if (kategori == null)
             {
-                var response = await httpClient.GetAsync($"{apiUrl}/{id}");
+                return NotFound();
+            }
 
-                if (response.IsSuccessStatusCode)
+            return kategori;
+        }
+
+      
+        [HttpPost]
+        public async Task<ActionResult<Kategori>> PostKategori(Kategori kategori)
+        {
+            _context.Kategoriler.Add(kategori);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetKategori), new { id = kategori.Id }, kategori);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutKategori(int id, Kategori kategori)
+        {
+            if (id != kategori.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(kategori).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Kategoriler.Any(e => e.Id == id))
                 {
-                    kategori = await response.Content.ReadFromJsonAsync<Kategori>();
+                    return NotFound();
                 }
                 else
                 {
-                    ViewBag.ErrorMessage = "Kategori detayları alınamadı.";
+                    throw;
                 }
             }
 
-            return View(kategori);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteKategori(int id)
+        {
+            var kategori = await _context.Kategoriler.FindAsync(id);
+            if (kategori == null)
+            {
+                return NotFound();
+            }
+
+            _context.Kategoriler.Remove(kategori);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
-

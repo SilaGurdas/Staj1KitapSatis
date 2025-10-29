@@ -1,65 +1,94 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using BookStoreMVC.Models; 
+﻿using BookStoreAPI.Data;
+using BookStoreAPI.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace BookStoreMVC.Controllers
+namespace BookStoreAPI.Controllers
 {
-    public class KitaplarController : BaseController
+    [Route("api/[controller]")]
+    [ApiController]
+    public class KitaplarController : ControllerBase
     {
-        private readonly HttpClient _httpClient;
+        private readonly UygulamaDbContext _context;
 
-        public KitaplarController()
+        public KitaplarController(UygulamaDbContext context)
         {
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri("https://localhost:7062/api/")
-            };
+            _context = context;
         }
-        public async Task<IActionResult> Index()
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Kitap>>> GetKitaplar()
         {
-            List<Kitap> kitaplar = new();
-
-            try
-            {
-                kitaplar = await _httpClient.GetFromJsonAsync<List<Kitap>>("kitaplar");
-            }
-            catch (Exception ex)
-            {
-               
-                ViewBag.ErrorMessage = "Kitaplar yüklenirken hata oluştu: " + ex.Message;
-            }
-
-            return View(kitaplar);
+            return await _context.Kitaplar.Include(k => k.Kategori).ToListAsync();
         }
-        public async Task<IActionResult> Detay(int id)
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Kitap>> GetKitap(int id)
         {
-            Kitap? kitap = null;
+            var kitap = await _context.Kitaplar.Include(k => k.Kategori).FirstOrDefaultAsync(k => k.Id == id);
 
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.BaseAddress = new Uri("https://localhost:7062"); 
-
-                var response = await httpClient.GetAsync($"/api/Kitaplar/{id}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    kitap = await response.Content.ReadFromJsonAsync<Kitap>();
-                }
-                else
-                {
-                    ViewBag.ErrorMessage = "Kitap bilgisi alınamadı.";
-                }
-            }
             if (kitap == null)
             {
                 return NotFound();
             }
-            return View(kitap);
+
+            return kitap;
         }
 
+
+
+        [HttpPost]
+        public async Task<ActionResult<Kitap>> PostKitap(Kitap kitap)
+        {
+            _context.Kitaplar.Add(kitap);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetKitap", new { id = kitap.Id }, kitap);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutKitap(int id, Kitap kitap)
+        {
+            if (id != kitap.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(kitap).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Kitaplar.Any(e => e.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteKitap(int id)
+        {
+            var kitap = await _context.Kitaplar.FindAsync(id);
+            if (kitap == null)
+            {
+                return NotFound();
+            }
+
+            _context.Kitaplar.Remove(kitap);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }
-
