@@ -1,62 +1,36 @@
-﻿
-@using BookStoreAPI.Models
+﻿@model List<BookStoreMVC.Models.Kitap>
 
-@model IEnumerable<Kitap>
+<h2>Kitaplar</h2>
 
-@{
-    ViewData["Title"] = "Index";
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
 }
 
-<h1>Index</h1>
+<div class="row">
+    @foreach (var kitap in Model)
+    {
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <img src="@kitap.ResimUrl" class="card-img-top" alt="@kitap.Ad" />
+                <div class="card-body">
+                    <h5 class="card-title">@kitap.Ad</h5>
+                    <p class="card-text">@kitap.Yazar</p>
+                    <p class="card-text">Fiyat: @kitap.Fiyat.ToString("C")</p>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Ad)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Yazar)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Fiyat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ResimUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Kategori)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Ad)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Yazar)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Fiyat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ResimUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Kategori.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+
+                    <a href="@Url.Action("Detay", "Kitaplar", new { id = kitap.Id })" class="btn btn-primary">Detay</a>
+
+                    <form asp-controller="Sepet" asp-action="SepeteEkle" method="post" style="display:inline-block; margin-left:5px;">
+                        <input type="hidden" name="kitapId" value="@kitap.Id" />
+                        <input type="hidden" name="kitapAdi" value="@kitap.Ad" />
+                        <input type="hidden" name="fiyat" value="@kitap.Fiyat" />
+                        <input type="hidden" name="resimUrl" value="@kitap.ResimUrl" />
+                        <button type="submit" class="btn btn-outline-success">🛒 Sepete Ekle</button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>

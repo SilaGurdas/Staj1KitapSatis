@@ -1,94 +1,65 @@
-﻿using BookStoreAPI.Data;
-using BookStoreAPI.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using BookStoreMVC.Models; 
 
-namespace BookStoreAPI.Controllers
+namespace BookStoreMVC.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class KitaplarController : ControllerBase
+    public class KitaplarController : BaseController
     {
-        private readonly UygulamaDbContext _context;
+        private readonly HttpClient _httpClient;
 
-        public KitaplarController(UygulamaDbContext context)
+        public KitaplarController()
         {
-            _context = context;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Kitap>>> GetKitaplar()
-        {
-            return await _context.Kitaplar.Include(k => k.Kategori).ToListAsync();
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Kitap>> GetKitap(int id)
-        {
-            var kitap = await _context.Kitaplar.Include(k => k.Kategori).FirstOrDefaultAsync(k => k.Id == id);
-
-            if (kitap == null)
+            _httpClient = new HttpClient
             {
-                return NotFound();
-            }
-
-            return kitap;
+                BaseAddress = new Uri("https://localhost:7062/api/")
+            };
         }
-
-
-
-        [HttpPost]
-        public async Task<ActionResult<Kitap>> PostKitap(Kitap kitap)
+        public async Task<IActionResult> Index()
         {
-            _context.Kitaplar.Add(kitap);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetKitap", new { id = kitap.Id }, kitap);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutKitap(int id, Kitap kitap)
-        {
-            if (id != kitap.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(kitap).State = EntityState.Modified;
+            List<Kitap> kitaplar = new();
 
             try
             {
-                await _context.SaveChangesAsync();
+                kitaplar = await _httpClient.GetFromJsonAsync<List<Kitap>>("kitaplar");
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!_context.Kitaplar.Any(e => e.Id == id))
+               
+                ViewBag.ErrorMessage = "Kitaplar yüklenirken hata oluştu: " + ex.Message;
+            }
+
+            return View(kitaplar);
+        }
+        public async Task<IActionResult> Detay(int id)
+        {
+            Kitap? kitap = null;
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.BaseAddress = new Uri("https://localhost:7062"); 
+
+                var response = await httpClient.GetAsync($"/api/Kitaplar/{id}");
+
+                if (response.IsSuccessStatusCode)
                 {
-                    return NotFound();
+                    kitap = await response.Content.ReadFromJsonAsync<Kitap>();
                 }
                 else
                 {
-                    throw;
+                    ViewBag.ErrorMessage = "Kitap bilgisi alınamadı.";
                 }
             }
-
-            return NoContent();
-        }
-
-        
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteKitap(int id)
-        {
-            var kitap = await _context.Kitaplar.FindAsync(id);
             if (kitap == null)
             {
                 return NotFound();
             }
-
-            _context.Kitaplar.Remove(kitap);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return View(kitap);
         }
+
     }
 }
+
